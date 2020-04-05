@@ -1,6 +1,7 @@
 package vmixtcp
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -11,7 +12,9 @@ import (
 
 // Vmix main object
 type Vmix struct {
-	Conn *net.Conn
+	Conn       *net.Conn
+	subscribe  *net.Conn
+	subhandler func(string)
 }
 
 func New(dest string) (*Vmix, error) {
@@ -35,12 +38,35 @@ func New(dest string) (*Vmix, error) {
 	log.Printf("vMix TCP API Initialized... : %s\n", Resp)
 
 	vmix.Conn = &c
+
+	// SUBSCRIBE related...
+	subscriber, err := net.Dial("tcp", dest+":8099")
+	if err != nil {
+		return nil, err
+	}
+	vmix.subscribe = &subscriber
+
+	go func() {
+		reader := bufio.NewReader(subscriber)
+		for {
+			data, err := reader.ReadString('\n')
+			if err != nil {
+				log.Printf("Unknown error on subscriber : %v\n", err)
+				break
+			}
+			log.Printf("SUBSCRIBER DATA : %v\n", string(data))
+		}
+	}()
+
 	return vmix, nil
 }
 
 func (v *Vmix) Close() {
 	c := *v.Conn
 	c.Close()
+
+	sub := *v.subscribe
+	sub.Close()
 }
 
 func (v *Vmix) XML() (string, string, error) {
@@ -104,6 +130,27 @@ func (v *Vmix) FUNCTION(funcname string) (string, error) {
 	if Resps[1] != "OK" {
 		return "", fmt.Errorf("Unknown ERR : %v", Resps[3:])
 	}
+
+	return Resp, nil
+}
+
+func (v *Vmix) SUBSCRIBE(command string) (string, error) {
+	c := *v.subscribe
+	_, err := c.Write([]byte(fmt.Sprintf("SUBSCRIBE %s\r\n", command)))
+	if err != nil {
+		return "", err
+	}
+	// c.SetReadDeadline(time.Now().Add(2 * time.Second))
+	RespBuffer := make([]byte, 1024)
+	RespLength, _ := c.Read(RespBuffer)
+
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), "\r\n", "")
+	Resps := strings.Split(Resp, " ")
+
+	if Resps[1] != "OK" {
+		return "", fmt.Errorf("Unknown ERR : %v", Resps[3:])
+	}
+	v.subscribe = &c
 
 	return Resp, nil
 }
