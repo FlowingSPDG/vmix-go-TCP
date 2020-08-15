@@ -118,7 +118,7 @@ func (v *Vmix) Close() {
 // XML Gets XML data. Same as HTTP API.
 func (v *Vmix) XML() (string, string, error) {
 	c := *v.Conn
-	_, err := c.Write([]byte("XML" + Terminate))
+	_, err := c.Write([]byte(EVENT_XML + Terminate))
 	if err != nil {
 		return "", "", err
 	}
@@ -144,7 +144,7 @@ func (v *Vmix) XML() (string, string, error) {
 // TALLY Get tally status
 func (v *Vmix) TALLY() (string, error) {
 	c := *v.Conn
-	_, err := c.Write([]byte("TALLY" + Terminate))
+	_, err := c.Write([]byte(EVENT_TALLY + Terminate))
 	if err != nil {
 		return "", err
 	}
@@ -165,7 +165,7 @@ func (v *Vmix) TALLY() (string, error) {
 // FUNCTION Send function
 func (v *Vmix) FUNCTION(funcname string) (string, error) {
 	c := *v.Conn
-	_, err := c.Write([]byte(fmt.Sprintf("FUNCTION %s%s", funcname, Terminate)))
+	_, err := c.Write([]byte(fmt.Sprintf("%s %s%s", EVENT_FUNCTION, funcname, Terminate)))
 	if err != nil {
 		return "", err
 	}
@@ -186,7 +186,7 @@ func (v *Vmix) FUNCTION(funcname string) (string, error) {
 // SUBSCRIBE Event
 func (v *Vmix) SUBSCRIBE(command string) (string, error) {
 	c := *v.subscribe
-	_, err := c.Write([]byte(fmt.Sprintf("SUBSCRIBE %s%s", command, Terminate)))
+	_, err := c.Write([]byte(fmt.Sprintf("%s %s%s", EVENT_SUBSCRIBE, command, Terminate)))
 	if err != nil {
 		return "", err
 	}
@@ -208,7 +208,7 @@ func (v *Vmix) SUBSCRIBE(command string) (string, error) {
 // UNSUBSCRIBE from event.
 func (v *Vmix) UNSUBSCRIBE(command string) (string, error) {
 	c := *v.subscribe
-	_, err := c.Write([]byte(fmt.Sprintf("UNSUBSCRIBE %s%s", command, Terminate)))
+	_, err := c.Write([]byte(fmt.Sprintf("%s %s%s", EVENT_UNSUBSCRIBE, command, Terminate)))
 	if err != nil {
 		return "", err
 	}
@@ -230,7 +230,7 @@ func (v *Vmix) UNSUBSCRIBE(command string) (string, error) {
 // QUIT Sends QUIT sigal
 func (v *Vmix) QUIT() error {
 	c := *v.Conn
-	_, err := c.Write([]byte(fmt.Sprintf("QUIT %s", Terminate)))
+	_, err := c.Write([]byte(fmt.Sprintf("%s %s", EVENT_QUIT, Terminate)))
 	if err != nil {
 		return err
 	}

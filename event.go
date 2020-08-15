@@ -7,4 +7,5 @@ const (
 	EVENT_XMLTEXT     string = "XMLTEXT"
 	EVENT_SUBSCRIBE   string = "SUBSCRIBE"
 	EVENT_UNSUBSCRIBE string = "UNSUBSCRIBE"
+	EVENT_QUIT        string = "QUIT"
 )
