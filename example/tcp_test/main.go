@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/FlowingSPDG/vmix-go-tcp"
 	"log"
+
+	"github.com/FlowingSPDG/vmix-go-tcp"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 	}
 	defer v.Close()
 
-	resp1, err := v.Tally()
+	resp1, err := v.TALLY()
 	if err != nil {
 		panic(err)
 	}
@@ -25,9 +26,28 @@ func main() {
 	log.Printf("XML RESPONSE1 : %s\n", resp1)
 	log.Printf("XML RESPONSE2 : %s\n", resp2)
 
-	resp1, err = v.FUNCTION("PreviewInput Input=5")
+	// If you want to parse XML, Comment-out following code to parse it
+	// https://github.com/FlowingSPDG/vmix-go/blob/master/models.go#L12-L45
+	//
+	/*
+		import {
+			"encoding/xml"
+			"github.com/FlowingSPDG/vmix-go"
+		}
+		v := vmixgo.Vmix{}
+		err = xml.Unmarshal(body, &v)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to unmarshal XML... %v", err)
+		}
+	*/
+
+	resp1, err = v.FUNCTION("PreviewInput Input=1")
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("FUNCTION RESPONSE : %s\n", resp1)
+
+	if err := v.QUIT(); err != nil {
+		panic(err)
+	}
 }
