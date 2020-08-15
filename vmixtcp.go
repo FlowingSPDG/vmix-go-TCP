@@ -92,12 +92,12 @@ func New(dest string) (*Vmix, error) {
 				}
 				if len(vmix.tallyHandler) >= 1 {
 					for i := 0; i < len(vmix.tallyHandler); i++ {
-						vmix.tallyHandler[i](tallyresp)
+						go vmix.tallyHandler[i](tallyresp)
 					}
 				}
 			} else {
 				if v, ok := vmix.cbhandler[resp.Command]; ok {
-					v(resp)
+					go v(resp)
 				}
 			}
 		}
