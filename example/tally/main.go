@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/FlowingSPDG/vmix-go-tcp"
 	"log"
 	"time"
+
+	"github.com/FlowingSPDG/vmix-go-tcp"
 )
 
 func main() {

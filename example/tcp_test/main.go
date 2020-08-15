@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/FlowingSPDG/vmix-go-tcp"
 	"log"
+
+	"github.com/FlowingSPDG/vmix-go-tcp"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 	}
 	defer v.Close()
 
-	resp1, err := v.Tally()
+	resp1, err := v.TALLY()
 	if err != nil {
 		panic(err)
 	}
@@ -25,9 +26,13 @@ func main() {
 	log.Printf("XML RESPONSE1 : %s\n", resp1)
 	log.Printf("XML RESPONSE2 : %s\n", resp2)
 
-	resp1, err = v.FUNCTION("PreviewInput Input=5")
+	resp1, err = v.FUNCTION("PreviewInput Input=1")
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("FUNCTION RESPONSE : %s\n", resp1)
+
+	if err := v.QUIT(); err != nil {
+		panic(err)
+	}
 }
