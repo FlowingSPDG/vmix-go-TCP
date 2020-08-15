@@ -26,6 +26,21 @@ func main() {
 	log.Printf("XML RESPONSE1 : %s\n", resp1)
 	log.Printf("XML RESPONSE2 : %s\n", resp2)
 
+	// If you want to parse XML, Comment-out following code to parse it
+	// https://github.com/FlowingSPDG/vmix-go/blob/master/models.go#L12-L45
+	//
+	/*
+		import {
+			"encoding/xml"
+			"github.com/FlowingSPDG/vmix-go"
+		}
+		v := vmixgo.Vmix{}
+		err = xml.Unmarshal(body, &v)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to unmarshal XML... %v", err)
+		}
+	*/
+
 	resp1, err = v.FUNCTION("PreviewInput Input=1")
 	if err != nil {
 		panic(err)
