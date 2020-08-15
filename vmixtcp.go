@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	Terminate = "\r\n"
+)
+
 // Vmix main object
 type Vmix struct {
 	Conn       *net.Conn
@@ -27,7 +31,7 @@ func New(dest string) (*Vmix, error) {
 	RespBuffer := make([]byte, 1024)
 	RespLength, _ := c.Read(RespBuffer)
 
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), "\r\n", "")
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
 	Resps := strings.Split(Resp, " ")
 
 	if Resps[1] != "OK" {
@@ -72,7 +76,7 @@ func (v *Vmix) Close() {
 
 func (v *Vmix) XML() (string, string, error) {
 	c := *v.Conn
-	_, err := c.Write([]byte("XML\r\n"))
+	_, err := c.Write([]byte("XML" + Terminate))
 	if err != nil {
 		return "", "", err
 	}
@@ -80,7 +84,7 @@ func (v *Vmix) XML() (string, string, error) {
 	RespBuffer := make([]byte, 1024)
 	RespLength, _ := c.Read(RespBuffer)
 
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), "\r\n", "")
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
 	Resps := strings.Split(Resp, " ")
 
 	BodyLen, err := strconv.Atoi(Resps[1])
@@ -90,14 +94,14 @@ func (v *Vmix) XML() (string, string, error) {
 
 	BodyBuffer := make([]byte, BodyLen)
 	BodyLength, _ := c.Read(BodyBuffer)
-	Body := strings.ReplaceAll(string(BodyBuffer[:BodyLength]), "\r\n", "")
+	Body := strings.ReplaceAll(string(BodyBuffer[:BodyLength]), Terminate, "")
 
 	return Resp, Body, nil
 }
 
-func (v *Vmix) Tally() (string, error) {
+func (v *Vmix) TALLY() (string, error) {
 	c := *v.Conn
-	_, err := c.Write([]byte("TALLY\r\n"))
+	_, err := c.Write([]byte("TALLY" + Terminate))
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +109,7 @@ func (v *Vmix) Tally() (string, error) {
 	RespBuffer := make([]byte, 1011) // Maximum possible length = 9 + 1000 + 2 = 1011 bytes
 	RespLength, _ := c.Read(RespBuffer)
 
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), "\r\n", "")
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
 	Resps := strings.Split(Resp, " ")
 
 	if Resps[1] != "OK" {
@@ -117,7 +121,7 @@ func (v *Vmix) Tally() (string, error) {
 
 func (v *Vmix) FUNCTION(funcname string) (string, error) {
 	c := *v.Conn
-	_, err := c.Write([]byte(fmt.Sprintf("FUNCTION %s\r\n", funcname)))
+	_, err := c.Write([]byte(fmt.Sprintf("FUNCTION %s%s", funcname, Terminate)))
 	if err != nil {
 		return "", err
 	}
@@ -125,7 +129,7 @@ func (v *Vmix) FUNCTION(funcname string) (string, error) {
 	RespBuffer := make([]byte, 1024)
 	RespLength, _ := c.Read(RespBuffer)
 
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), "\r\n", "")
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
 	Resps := strings.Split(Resp, " ")
 
 	if Resps[1] != "OK" {
@@ -137,7 +141,7 @@ func (v *Vmix) FUNCTION(funcname string) (string, error) {
 
 func (v *Vmix) SUBSCRIBE(command string) (string, error) {
 	c := *v.subscribe
-	_, err := c.Write([]byte(fmt.Sprintf("SUBSCRIBE %s\r\n", command)))
+	_, err := c.Write([]byte(fmt.Sprintf("SUBSCRIBE %s%s", command, Terminate)))
 	if err != nil {
 		return "", err
 	}
@@ -145,7 +149,7 @@ func (v *Vmix) SUBSCRIBE(command string) (string, error) {
 	RespBuffer := make([]byte, 1024)
 	RespLength, _ := c.Read(RespBuffer)
 
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), "\r\n", "")
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
 	Resps := strings.Split(Resp, " ")
 
 	if Resps[1] != "OK" {
@@ -154,4 +158,26 @@ func (v *Vmix) SUBSCRIBE(command string) (string, error) {
 	v.subscribe = &c
 
 	return Resp, nil
+}
+
+// QUIT Sends QUIT sigal
+func (v *Vmix) QUIT() error {
+	c := *v.Conn
+	_, err := c.Write([]byte(fmt.Sprintf("QUIT %s", Terminate)))
+	if err != nil {
+		return err
+	}
+	c.SetReadDeadline(time.Now().Add(2 * time.Second))
+	RespBuffer := make([]byte, 1024)
+	RespLength, _ := c.Read(RespBuffer)
+
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
+	Resps := strings.Split(Resp, " ")
+
+	// check slice length
+	if Resps[1] != "OK" {
+		return fmt.Errorf("Unknown ERR : %v", Resps[3:])
+	}
+
+	return nil
 }
