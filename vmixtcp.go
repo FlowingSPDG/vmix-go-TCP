@@ -19,12 +19,13 @@ const (
 type Vmix struct {
 	Conn       *net.Conn
 	subscribe  *net.Conn
-	subhandler func(string)
+	subhandler map[string]func(Response)
 }
 
 // New vmix instance
 func New(dest string) (*Vmix, error) {
 	vmix := &Vmix{}
+	vmix.subhandler = make(map[string]func(Response))
 	c, err := net.Dial("tcp", dest+":8099")
 	if err != nil {
 		return nil, err
