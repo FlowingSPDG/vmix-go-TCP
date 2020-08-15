@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	// Terminate letter
 	Terminate = "\r\n"
 )
 
@@ -20,6 +21,7 @@ type Vmix struct {
 	subhandler func(string)
 }
 
+// New vmix instance
 func New(dest string) (*Vmix, error) {
 	vmix := &Vmix{}
 	c, err := net.Dial("tcp", dest+":8099")
@@ -66,6 +68,7 @@ func New(dest string) (*Vmix, error) {
 	return vmix, nil
 }
 
+// Close connection
 func (v *Vmix) Close() {
 	c := *v.Conn
 	c.Close()
@@ -74,6 +77,7 @@ func (v *Vmix) Close() {
 	sub.Close()
 }
 
+// XML Gets XML data. Same as HTTP API.
 func (v *Vmix) XML() (string, string, error) {
 	c := *v.Conn
 	_, err := c.Write([]byte("XML" + Terminate))
@@ -99,6 +103,7 @@ func (v *Vmix) XML() (string, string, error) {
 	return Resp, Body, nil
 }
 
+// TALLY Get tally status
 func (v *Vmix) TALLY() (string, error) {
 	c := *v.Conn
 	_, err := c.Write([]byte("TALLY" + Terminate))
@@ -119,6 +124,7 @@ func (v *Vmix) TALLY() (string, error) {
 	return Resp, nil
 }
 
+// FUNCTION Send function
 func (v *Vmix) FUNCTION(funcname string) (string, error) {
 	c := *v.Conn
 	_, err := c.Write([]byte(fmt.Sprintf("FUNCTION %s%s", funcname, Terminate)))
@@ -139,9 +145,32 @@ func (v *Vmix) FUNCTION(funcname string) (string, error) {
 	return Resp, nil
 }
 
+// SUBSCRIBE Event
 func (v *Vmix) SUBSCRIBE(command string) (string, error) {
 	c := *v.subscribe
 	_, err := c.Write([]byte(fmt.Sprintf("SUBSCRIBE %s%s", command, Terminate)))
+	if err != nil {
+		return "", err
+	}
+	// c.SetReadDeadline(time.Now().Add(2 * time.Second))
+	RespBuffer := make([]byte, 1024)
+	RespLength, _ := c.Read(RespBuffer)
+
+	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
+	Resps := strings.Split(Resp, " ")
+
+	if Resps[1] != "OK" {
+		return "", fmt.Errorf("Unknown ERR : %v", Resps[3:])
+	}
+	v.subscribe = &c
+
+	return Resp, nil
+}
+
+// UNSUBSCRIBE from event.
+func (v *Vmix) UNSUBSCRIBE(command string) (string, error) {
+	c := *v.subscribe
+	_, err := c.Write([]byte(fmt.Sprintf("UNSUBSCRIBE %s%s", command, Terminate)))
 	if err != nil {
 		return "", err
 	}
