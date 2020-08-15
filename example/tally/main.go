@@ -2,22 +2,36 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/FlowingSPDG/vmix-go-tcp"
 )
 
+var (
+	lock chan struct{}
+)
+
 func main() {
+	log.Println("STARTING...")
+	lock := make(chan struct{})
 	v, err := vmixtcp.New("localhost")
 	if err != nil {
 		panic(err)
 	}
+	log.Println("vMix connection success")
 	defer v.Close()
 
-	resp, err := v.SUBSCRIBE("TALLY")
+	// Subscribe tally event
+	_, err = v.SUBSCRIBE("TALLY")
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("SUBSCRIBE TALLY RESPONSE : %s\n", resp)
-	time.Sleep(time.Second * 30)
+
+	// register callback
+	v.RegisterTallyCallback(func(res *vmixtcp.TallyResponse) {
+		log.Println("TALLY STATUS :", res.Status)
+		for i := 0; i < len(res.Tally); i++ {
+			log.Printf("TALLY [%d] STATUS : %s\n", i+1, res.Tally[i].String())
+		}
+	})
+	<-lock
 }

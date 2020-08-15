@@ -17,15 +17,17 @@ const (
 
 // Vmix main object
 type Vmix struct {
-	Conn       *net.Conn
-	subscribe  *net.Conn
-	subhandler map[string]func(Response)
+	Conn         *net.Conn
+	subscribe    *net.Conn
+	cbhandler    map[string]func(*Response)
+	tallyHandler []func(*TallyResponse)
 }
 
 // New vmix instance
 func New(dest string) (*Vmix, error) {
 	vmix := &Vmix{}
-	vmix.subhandler = make(map[string]func(Response))
+	vmix.cbhandler = make(map[string]func(*Response))
+	vmix.tallyHandler = make([]func(*TallyResponse), 0, 0)
 	c, err := net.Dial("tcp", dest+":8099")
 	if err != nil {
 		return nil, err
@@ -61,7 +63,43 @@ func New(dest string) (*Vmix, error) {
 				log.Printf("Unknown error on subscriber : %v\n", err)
 				continue
 			}
-			log.Printf("SUBSCRIBER DATA : %v\n", string(data))
+			data = strings.ReplaceAll(data, Terminate, " ")
+			log.Println("SUBSCRIBER DATA :", data)
+			responses := strings.Split(string(data), " ") // Split response by space
+			if len(responses) < 3 {
+				log.Println("Unknown length data :", responses)
+				continue
+			}
+			resp := &Response{}
+			resp.Command = responses[0]
+			resp.StatusOrLength = responses[1]
+			resp.Response = responses[2]
+			if len(responses) >= 4 {
+				resp.Data = responses[3]
+			}
+			if resp.Command == EVENT_TALLY {
+				tallyresp := &TallyResponse{
+					Status: resp.StatusOrLength,
+					Tally:  make([]TallyStatus, len(resp.Response)),
+				}
+				for i := 0; i < len(resp.Response); i++ {
+					status, err := strconv.Atoi(string(resp.Response[i]))
+					if err != nil {
+						log.Println("Unknown error while parsing response :", err)
+						continue
+					}
+					tallyresp.Tally[i] = TallyStatus(status)
+				}
+				if len(vmix.tallyHandler) >= 1 {
+					for i := 0; i < len(vmix.tallyHandler); i++ {
+						vmix.tallyHandler[i](tallyresp)
+					}
+				}
+			} else {
+				if v, ok := vmix.cbhandler[resp.Command]; ok {
+					v(resp)
+				}
+			}
 		}
 	}()
 
