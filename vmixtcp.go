@@ -17,7 +17,7 @@ const (
 
 // Vmix main object
 type Vmix struct {
-	Conn         *net.Conn
+	conn         *net.Conn
 	subscribe    *net.Conn
 	cbhandler    map[string]func(*Response)
 	tallyHandler []func(*TallyResponse)
@@ -46,7 +46,7 @@ func New(dest string) (*Vmix, error) {
 
 	log.Printf("vMix TCP API Initialized... : %s\n", Resp)
 
-	vmix.Conn = &c
+	vmix.conn = &c
 
 	// SUBSCRIBE related...
 	subscriber, err := net.Dial("tcp", dest+":8099")
@@ -108,7 +108,7 @@ func New(dest string) (*Vmix, error) {
 
 // Close connection
 func (v *Vmix) Close() {
-	c := *v.Conn
+	c := *v.conn
 	c.Close()
 
 	sub := *v.subscribe
@@ -117,7 +117,7 @@ func (v *Vmix) Close() {
 
 // XML Gets XML data. Same as HTTP API.
 func (v *Vmix) XML() (string, string, error) {
-	c := *v.Conn
+	c := *v.conn
 	_, err := c.Write([]byte(EVENT_XML + Terminate))
 	if err != nil {
 		return "", "", err
@@ -143,7 +143,7 @@ func (v *Vmix) XML() (string, string, error) {
 
 // TALLY Get tally status
 func (v *Vmix) TALLY() (string, error) {
-	c := *v.Conn
+	c := *v.conn
 	_, err := c.Write([]byte(EVENT_TALLY + Terminate))
 	if err != nil {
 		return "", err
@@ -164,7 +164,7 @@ func (v *Vmix) TALLY() (string, error) {
 
 // FUNCTION Send function
 func (v *Vmix) FUNCTION(funcname string) (string, error) {
-	c := *v.Conn
+	c := *v.conn
 	_, err := c.Write([]byte(fmt.Sprintf("%s %s%s", EVENT_FUNCTION, funcname, Terminate)))
 	if err != nil {
 		return "", err
@@ -229,7 +229,7 @@ func (v *Vmix) UNSUBSCRIBE(command string) (string, error) {
 
 // QUIT Sends QUIT sigal
 func (v *Vmix) QUIT() error {
-	c := *v.Conn
+	c := *v.conn
 	_, err := c.Write([]byte(fmt.Sprintf("%s %s", EVENT_QUIT, Terminate)))
 	if err != nil {
 		return err
