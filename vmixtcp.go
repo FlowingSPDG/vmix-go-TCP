@@ -1,7 +1,6 @@
 package vmixtcp
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -46,17 +45,19 @@ func New(dest string) (*Vmix, error) {
 	}
 	vmix.subscribe = &subscriber
 
-	go func() {
-		reader := bufio.NewReader(subscriber)
-		for {
-			data, err := reader.ReadString('\n')
-			if err != nil {
-				log.Printf("Unknown error on subscriber : %v\n", err)
-				break
+	/*
+		go func() {
+			reader := bufio.NewReader(subscriber)
+			for {
+				data, err := reader.ReadString('\n')
+				if err != nil {
+					log.Printf("Unknown error on subscriber : %v\n", err)
+					break
+				}
+				log.Printf("SUBSCRIBER DATA : %v\n", string(data))
 			}
-			log.Printf("SUBSCRIBER DATA : %v\n", string(data))
-		}
-	}()
+		}()
+	*/
 
 	return vmix, nil
 }
