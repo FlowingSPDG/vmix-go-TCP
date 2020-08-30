@@ -1,20 +1,8 @@
 package vmixtcp
 
 // TallyStatus alias to uint
+//go:generate stringer -type=TallyStatus
 type TallyStatus uint
-
-func (t TallyStatus) String() string {
-	switch t {
-	case TallyOff:
-		return "Off"
-	case TallyProgram:
-		return "Program"
-	case TallyPreview:
-		return "Preview"
-	default:
-		return "UNKNOWN"
-	}
-}
 
 // TallyResponse TALLY Event response
 type TallyResponse struct {
@@ -23,12 +11,9 @@ type TallyResponse struct {
 }
 
 const (
-	// TallyOff = 0
-	TallyOff TallyStatus = iota
-	// TallyProgram = 1
-	TallyProgram
-	// TallyPreview = 2
-	TallyPreview
+	Off TallyStatus = iota
+	Program
+	Preview
 )
 
 // RegisterTallyCallback tally callback for TALLY event.
