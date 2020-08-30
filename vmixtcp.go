@@ -91,8 +91,8 @@ func New(dest string) (*Vmix, error) {
 					tallyresp.Tally[i] = TallyStatus(status)
 				}
 				if len(vmix.tallyHandler) >= 1 {
-					for i := 0; i < len(vmix.tallyHandler); i++ {
-						go vmix.tallyHandler[i](tallyresp)
+					for _, v := range vmix.tallyHandler {
+						go v(tallyresp)
 					}
 				}
 			} else {
