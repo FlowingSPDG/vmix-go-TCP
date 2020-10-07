@@ -3,6 +3,7 @@ package vmixtcp
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -59,6 +60,9 @@ func New(dest string) (*Vmix, error) {
 		reader := bufio.NewReader(subscriber)
 		for {
 			data, err := reader.ReadString('\n')
+			if err == io.EOF {
+				panic(err)
+			}
 			if err != nil {
 				log.Printf("Unknown error on subscriber : %v\n", err)
 				continue
