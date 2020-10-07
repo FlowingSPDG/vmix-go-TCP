@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/FlowingSPDG/vmix-go-tcp"
+	vmixtcp "github.com/FlowingSPDG/vmix-go-TCP"
 )
 
 func main() {
