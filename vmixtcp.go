@@ -132,7 +132,7 @@ func (v *Vmix) XML() (string, string, error) {
 
 	BodyLen, err := strconv.Atoi(Resps[1])
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("Failed to parse Body length. Resps:%v ERR:%v", Resps, err)
 	}
 
 	BodyBuffer := make([]byte, BodyLen)
