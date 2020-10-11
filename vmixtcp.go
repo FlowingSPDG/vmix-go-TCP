@@ -118,28 +118,27 @@ func (v *Vmix) Close() {
 }
 
 // XML Gets XML data. Same as HTTP API.
-func (v *Vmix) XML() (string, string, error) {
+func (v *Vmix) XML() (string, error) {
 	_, err := v.conn.Write([]byte(EVENT_XML + Terminate))
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	v.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	RespBuffer := make([]byte, 1024)
-	RespLength, _ := v.conn.Read(RespBuffer)
-
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
-	Resps := strings.Split(Resp, " ")
-
-	BodyLen, err := strconv.Atoi(Resps[1])
+	BodyBuffer := make([]byte, 1024*1000) // 1MB
+	BodyLength, _ := v.conn.Read(BodyBuffer)
+	Body := strings.Split(string(BodyBuffer[:BodyLength]), Terminate)
+	if len(Body) != 2 {
+		return "", fmt.Errorf("Unknown XML Response: %v", Body)
+	}
+	size, err := strconv.Atoi(Body[0])
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to parse Body length. Resps:%v ERR:%v", Resps, err)
+		return "", fmt.Errorf("Unknown XML Response: %v", Body)
+	}
+	if size != len(Body[1]) {
+		return "", fmt.Errorf("Body length mismatch: %v", Body)
 	}
 
-	BodyBuffer := make([]byte, BodyLen)
-	BodyLength, _ := v.conn.Read(BodyBuffer)
-	Body := strings.ReplaceAll(string(BodyBuffer[:BodyLength]), Terminate, "")
-
-	return Resp, Body, nil
+	return Body[1], nil
 }
 
 // TALLY Get tally status
