@@ -118,28 +118,24 @@ func (v *Vmix) Close() {
 }
 
 // XML Gets XML data. Same as HTTP API.
-func (v *Vmix) XML() (string, string, error) {
+func (v *Vmix) XML() (string, error) {
 	_, err := v.conn.Write([]byte(EVENT_XML + Terminate))
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	v.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 	RespBuffer := make([]byte, 1024)
 	RespLength, _ := v.conn.Read(RespBuffer)
-
-	Resp := strings.ReplaceAll(string(RespBuffer[:RespLength]), Terminate, "")
-	Resps := strings.Split(Resp, " ")
-
-	BodyLen, err := strconv.Atoi(Resps[1])
+	Resp := strings.Split(string(RespBuffer[:RespLength]), Terminate)
+	size, err := strconv.Atoi(strings.ReplaceAll(Resp[0], "XML ", "")) // get XML size
 	if err != nil {
-		return "", "", err
+		return "", fmt.Errorf("Unknown XML Response: %v", Resp)
 	}
 
-	BodyBuffer := make([]byte, BodyLen)
+	BodyBuffer := make([]byte, size) // allocate memory
+	v.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 	BodyLength, _ := v.conn.Read(BodyBuffer)
-	Body := strings.ReplaceAll(string(BodyBuffer[:BodyLength]), Terminate, "")
-
-	return Resp, Body, nil
+	return string(BodyBuffer[:BodyLength]), nil
 }
 
 // TALLY Get tally status
