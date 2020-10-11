@@ -124,21 +124,18 @@ func (v *Vmix) XML() (string, error) {
 		return "", err
 	}
 	v.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	BodyBuffer := make([]byte, 1024*1000) // 1MB
-	BodyLength, _ := v.conn.Read(BodyBuffer)
-	Body := strings.Split(string(BodyBuffer[:BodyLength]), Terminate)
-	if len(Body) != 2 {
-		return "", fmt.Errorf("Unknown XML Response: %v", Body)
-	}
-	size, err := strconv.Atoi(Body[0])
+	RespBuffer := make([]byte, 1024)
+	RespLength, _ := v.conn.Read(RespBuffer)
+	Resp := strings.Split(string(RespBuffer[:RespLength]), Terminate)
+	size, err := strconv.Atoi(strings.ReplaceAll(Resp[0], "XML ", "")) // get XML size
 	if err != nil {
-		return "", fmt.Errorf("Unknown XML Response: %v", Body)
-	}
-	if size != len(Body[1]) {
-		return "", fmt.Errorf("Body length mismatch: %v", Body)
+		return "", fmt.Errorf("Unknown XML Response: %v", Resp)
 	}
 
-	return Body[1], nil
+	BodyBuffer := make([]byte, size) // allocate memory
+	v.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	BodyLength, _ := v.conn.Read(BodyBuffer)
+	return string(BodyBuffer[:BodyLength]), nil
 }
 
 // TALLY Get tally status
