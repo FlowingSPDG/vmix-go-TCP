@@ -19,12 +19,11 @@ func main() {
 	}
 	log.Printf("TALLY RESPONSE1 : %s\n", resp1)
 
-	resp1, resp2, err := v.XML()
+	resp, err := v.XML()
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("XML RESPONSE1 : %s\n", resp1)
-	log.Printf("XML RESPONSE2 : %s\n", resp2)
+	log.Printf("XML RESPONSE : %s\n", resp)
 
 	// If you want to parse XML, Comment-out following code to parse it
 	// https://github.com/FlowingSPDG/vmix-go/blob/master/models.go#L12-L45
@@ -32,12 +31,11 @@ func main() {
 	/*
 		import {
 			"encoding/xml"
-			"github.com/FlowingSPDG/vmix-go"
+			vmixgo "github.com/FlowingSPDG/vmix-go"
 		}
 		v := vmixgo.Vmix{}
-		err = xml.Unmarshal(body, &v)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to unmarshal XML... %v", err)
+		if err := xml.Unmarshal([]byte(resp), &v); err != nil {
+			return err
 		}
 	*/
 
