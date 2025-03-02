@@ -1,3 +1,7 @@
+# DEPRECATION WARNING
+This repository is moved to github.com/FlowingSPDG-vmix-go .
+This repository is **NO LONGER MAINTAINED.**
+
 # vmix TCP API
 vMix TCP API wrapper for Golang.
 
